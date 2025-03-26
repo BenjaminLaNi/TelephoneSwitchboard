@@ -25,15 +25,6 @@ public class PortsController : MonoBehaviour
             }
             cables[c.gameObject.name].Add(c);
         }
-        Light();
-    }
-
-    async void Light()
-    {
-        await Task.Delay(1000);
-        ports[0].ToggleLight();
-        await Task.Delay(5000);
-        ports[0].ToggleLight();
     }
 
     // Update is called once per frame
