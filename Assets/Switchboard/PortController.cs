@@ -9,6 +9,8 @@ public class PortController : MonoBehaviour
 {
     public string PortName;
     TMP_Text Identifier;
+    public bool Occupied = false;
+    public bool Light = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,5 +22,17 @@ public class PortController : MonoBehaviour
     void Update()
     {
 
+    }
+
+    public void ToggleLight(bool value)
+    {
+        Light = value;
+        this.gameObject.GetComponentsInChildren<UnityEngine.UI.Image>().Where((i) => i.gameObject.name == "Light").ToArray()[0].sprite = Resources.Load<Sprite>((Light ? "Light On" : "Lamp Off"));
+    }
+
+    public void ToggleLight()
+    {
+        Light = !Light;
+        this.gameObject.GetComponentsInChildren<UnityEngine.UI.Image>().Where((i) => i.gameObject.name == "Light").ToArray()[0].sprite = Resources.Load<Sprite>((Light ? "Light On" : "Lamp Off"));
     }
 }
