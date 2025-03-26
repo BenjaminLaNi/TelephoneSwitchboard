@@ -9,8 +9,10 @@ public class PortController : MonoBehaviour
 {
     public string PortName;
     TMP_Text Identifier;
-    public bool Occupied = false;
+    public bool Occupied { get { return _occupied; } set { _occupied = value; OccupiedCallback(value); } }
+    private bool _occupied = false;
     public bool Light = false;
+    public System.Action<bool> OccupiedCallback;
     // Start is called before the first frame update
     void Start()
     {

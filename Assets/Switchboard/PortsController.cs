@@ -25,6 +25,13 @@ public class PortsController : MonoBehaviour
             }
             cables[c.gameObject.name].Add(c);
         }
+        foreach (PortController port in ports)
+        {
+            port.OccupiedCallback = (isOccupied) =>
+            {
+                Debug.Log(port.PortName + " " + isOccupied);
+            };
+        }
     }
 
     // Update is called once per frame
