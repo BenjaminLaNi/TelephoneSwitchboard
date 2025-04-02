@@ -59,12 +59,16 @@ public class CableJackController : MonoBehaviour
                 }
                 connection = portHover.gameObject.GetComponentInParent<PortController>();
                 Vector2 pos = (Vector2)portHover.transform.position + (Vector2)portHover.offset / 2;
+                if (connection.IsCableHolder)
+                {
+                    pos.y += .6f;
+                }
                 boneAnchor.transform.position = pos;
                 rb.MovePosition(pos);
+                PortID = connection.IsCableHolder ? "cableholder" : connection.PortName;
                 connection.Occupied = true;
                 SetOccupied(true);
                 portHover = null;
-                PortID = connection.PortName;
                 return;
             }
             boneAnchor.transform.position = beforePosition;

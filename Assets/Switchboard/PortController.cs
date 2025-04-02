@@ -9,15 +9,21 @@ public class PortController : MonoBehaviour
 {
     public string PortName;
     TMP_Text Identifier;
-    public bool Occupied { get { return _occupied; } set { _occupied = value; OccupiedCallback(value); } }
+    public System.Action<bool> OccupiedCallback = (v) => { };
     private bool _occupied = false;
+    public bool Occupied { get { return _occupied; } set { _occupied = value; OccupiedCallback(value); } }
     public bool Light = false;
-    public System.Action<bool> OccupiedCallback;
+    public bool IsCableHolder = false;
     // Start is called before the first frame update
     void Start()
     {
-        Identifier = this.GetComponentsInChildren<TMP_Text>().Where((o) => o.name == "Identifier").ToArray<TMP_Text>()[0];
-        Identifier.text = PortName;
+        Occupied = false;
+        if (!IsCableHolder)
+        {
+            Identifier = this.GetComponentsInChildren<TMP_Text>().Where((o) => o.name == "Identifier").ToArray<TMP_Text>()[0];
+            Identifier.text = PortName;
+        }
+
     }
 
     // Update is called once per frame
