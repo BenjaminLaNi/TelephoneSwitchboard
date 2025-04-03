@@ -12,8 +12,11 @@ public class PortsController : MonoBehaviour
     List<PortController> ports;
     public Dictionary<string, List<CableJackController>> cables;
     public GameObject cablesParent;
+    public string[] requiredConnection = new string[] { "", "" };
+    public string requiredOperatorId = "";
+    public Action requiredOperatorCallback = new Action(() => { });
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         ports = new List<PortController>(this.GetComponentsInChildren<PortController>());
         cables = new Dictionary<string, List<CableJackController>>();
@@ -25,18 +28,23 @@ public class PortsController : MonoBehaviour
             }
             cables[c.gameObject.transform.parent.gameObject.name].Add(c);
         }
-        string index1 = ports[new System.Random().Next(0, ports.Count)].PortName;
-        string index2 = ports[new System.Random().Next(0, ports.Count)].PortName;
-        Debug.Log(index1 + " -> " + index2);
+
         foreach (PortController port in ports)
         {
             port.OccupiedCallback = (isOccupied) =>
             {
-                if (port.PortName == index1 && isOccupied)
+                if (requiredOperatorId == port.PortName && isOccupied && port.IsOperatorCable)
+                {
+                    requiredOperatorCallback();
+                    requiredOperatorId = "";
+                    requiredOperatorCallback = new Action(() => { });
+                    return;
+                }
+                if (requiredConnection.Contains(port.PortName) && isOccupied)
                 {
                     foreach (var cable in cables)
                     {
-                        if (cable.Value[0].PortID == index1 || cable.Value[1].PortID == index1)
+                        if (requiredConnection.Contains(cable.Value[0].PortID) && requiredConnection.Contains(cable.Value[1].PortID))
                         {
                             Debug.Log("yipee " + cable.Key);
                         }
@@ -51,5 +59,18 @@ public class PortsController : MonoBehaviour
     void Update()
     {
 
+    }
+
+    public void RequireConnection(string firstId, string secondId)
+    {
+        requiredConnection = new string[] { firstId, secondId };
+        Debug.Log(firstId + " -> " + secondId);
+    }
+
+    public void RequireOperator(string id, Action callback)
+    {
+        requiredOperatorId = id;
+        ports.Where((p) => p.PortName == id).FirstOrDefault().ToggleLight(true);
+        requiredOperatorCallback = callback;
     }
 }

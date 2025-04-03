@@ -1,29 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
 
-public enum CableEnd
+public class OperatorJackHandler : MonoBehaviour
 {
-    start,
-    end
-}
-
-public class CableJackController : MonoBehaviour
-{
-
     bool mouseDown = false;
     bool mouseOver = false;
     CircleCollider2D portHover = null;
     public PortController connection = null;
-    public CableEnd cableEnd = CableEnd.start;
+    public CableEnd cableEnd = CableEnd.end;
     public Sprite unoccupiedSprite;
     public Sprite occupiedSprite;
 
-    Vector3 beforePosition = Vector3.zero;
+    Vector3 regularPosition = Vector3.zero;
     Vector3 deltaPos = Vector3.zero;
 
     public GameObject boneAnchor;
@@ -34,6 +23,7 @@ public class CableJackController : MonoBehaviour
     void Start()
     {
         rb = this.GetComponent<Rigidbody2D>();
+        regularPosition = this.transform.position;
     }
 
     // Update is called once per frame
@@ -43,8 +33,6 @@ public class CableJackController : MonoBehaviour
         if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown)
         {
             mouseDown = true;
-            beforePosition = this.transform.position;
-            deltaPos = this.transform.position - boneAnchor.transform.position;
             SetOccupied(false);
         }
         if (Input.GetMouseButtonUp(0) && mouseDown)
@@ -67,17 +55,17 @@ public class CableJackController : MonoBehaviour
                 rb.MovePosition(pos);
                 PortID = connection.IsCableHolder ? "cableholder" : connection.PortName;
                 connection.Occupied = true;
-                connection.cableConnected = this;
+                connection.IsOperatorCable = true;
                 SetOccupied(true);
                 portHover = null;
                 return;
             }
-            boneAnchor.transform.position = beforePosition;
-            rb.MovePosition(beforePosition);
-            if (connection != null)
-            {
-                SetOccupied(true);
-            }
+            connection.Occupied = false;
+            connection.IsOperatorCable = false;
+            connection = null;
+            boneAnchor.transform.position = regularPosition;
+            rb.MovePosition(regularPosition);
+            SetOccupied(false);
             portHover = null;
             PortID = "";
         }

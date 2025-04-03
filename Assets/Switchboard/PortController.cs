@@ -13,6 +13,8 @@ public class PortController : MonoBehaviour
     private bool _occupied = false;
     public bool Occupied { get { return _occupied; } set { _occupied = value; OccupiedCallback(value); } }
     public bool Light = false;
+    public CableJackController cableConnected = null;
+    public bool IsOperatorCable = false;
     public bool IsCableHolder = false;
     // Start is called before the first frame update
     void Start()
