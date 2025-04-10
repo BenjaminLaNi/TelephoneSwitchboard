@@ -29,7 +29,6 @@ public class OperatorJackHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0)) { Debug.Log("M1"); }
         if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown)
         {
             mouseDown = true;
@@ -54,15 +53,18 @@ public class OperatorJackHandler : MonoBehaviour
                 boneAnchor.transform.position = pos;
                 rb.MovePosition(pos);
                 PortID = connection.IsCableHolder ? "cableholder" : connection.PortName;
-                connection.Occupied = true;
                 connection.IsOperatorCable = true;
+                connection.Occupied = true;
                 SetOccupied(true);
                 portHover = null;
                 return;
             }
-            connection.Occupied = false;
-            connection.IsOperatorCable = false;
-            connection = null;
+            if (connection != null)
+            {
+                connection.Occupied = false;
+                connection.IsOperatorCable = false;
+                connection = null;
+            }
             boneAnchor.transform.position = regularPosition;
             rb.MovePosition(regularPosition);
             SetOccupied(false);
@@ -92,7 +94,7 @@ public class OperatorJackHandler : MonoBehaviour
         if (collision.gameObject.tag == "PortCollider" && mouseDown)
         {
             portHover = collision.gameObject.GetComponent<CircleCollider2D>();
-            Debug.Log("Port");
+
         }
     }
 

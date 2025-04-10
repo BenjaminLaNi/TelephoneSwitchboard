@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -16,6 +18,7 @@ public class PortController : MonoBehaviour
     public CableJackController cableConnected = null;
     public bool IsOperatorCable = false;
     public bool IsCableHolder = false;
+    public bool blinking = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -37,12 +40,39 @@ public class PortController : MonoBehaviour
     public void ToggleLight(bool value)
     {
         Light = value;
-        this.gameObject.GetComponentsInChildren<UnityEngine.UI.Image>().Where((i) => i.gameObject.name == "Light").ToArray()[0].sprite = Resources.Load<Sprite>((Light ? "Light On" : "Lamp Off"));
+        _toggleLight(Light);
+        blinking = false;
     }
 
     public void ToggleLight()
     {
         Light = !Light;
-        this.gameObject.GetComponentsInChildren<UnityEngine.UI.Image>().Where((i) => i.gameObject.name == "Light").ToArray()[0].sprite = Resources.Load<Sprite>((Light ? "Light On" : "Lamp Off"));
+        _toggleLight(Light);
+        blinking = false;
+    }
+
+    private void _toggleLight(bool value)
+    {
+        this.gameObject.GetComponentsInChildren<UnityEngine.UI.Image>().Where((i) => i.gameObject.name == "Light").ToArray()[0].sprite = Resources.Load<Sprite>((value ? "Light On" : "Lamp Off"));
+    }
+
+    public void BlinkLight()
+    {
+        blinking = true;
+        int count = (new System.Random()).Next(5, 10);
+        IEnumerator task(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (!blinking) { Debug.Log(blinking); yield break; }
+                _toggleLight(true);
+                yield return new WaitForSeconds(0.25f);
+                _toggleLight(false);
+                if (!blinking) { yield break; }
+                yield return new WaitForSeconds(0.5f);
+            }
+            ToggleLight(true);
+        }
+        StartCoroutine(task(count));
     }
 }
