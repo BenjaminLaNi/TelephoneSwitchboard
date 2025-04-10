@@ -66,8 +66,8 @@ public class CableJackController : MonoBehaviour
                 boneAnchor.transform.position = pos;
                 rb.MovePosition(pos);
                 PortID = connection.IsCableHolder ? "cableholder" : connection.PortName;
-                connection.Occupied = true;
                 connection.cableConnected = this;
+                connection.Occupied = true;
                 SetOccupied(true);
                 portHover = null;
                 return;

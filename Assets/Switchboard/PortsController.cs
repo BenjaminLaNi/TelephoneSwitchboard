@@ -12,11 +12,13 @@ public class PortsController : MonoBehaviour
 {
     public Dictionary<PortController, Action> incomingCalls = new Dictionary<PortController, Action>();
     public List<Call> currentCalls = new List<Call>();
+    public List<RegisteredConnection> registeredConnections = new List<RegisteredConnection>();
+    public ScoreHandler scoreHandler;
 
     List<PortController> ports;
     public Dictionary<string, List<CableJackController>> cables;
     public GameObject cablesParent;
-    public PortController[] requiredConnection = new PortController[] { };
+    public List<Connection> requiredConnections = new List<Connection>();
     public string requiredOperatorId = "";
     public Action requiredOperatorCallback = new Action(() => { });
     // Start is called before the first frame update
@@ -44,19 +46,22 @@ public class PortsController : MonoBehaviour
                     incomingCalls.Remove(port);
                     return;
                 }
-                if (requiredConnection.Contains(port))
+                var cable = cables.Values.ToList().FindLast((c) => c.Contains(port.cableConnected));
+                if (cable == null) { Debug.Log("cable"); return; }
+                if (!(requiredConnections.FindAll((c) => c.includesPort(cable[0].connection ?? new PortController())).Count > 0 || requiredConnections.FindAll((c) => c.includesPort(cable[1].connection ?? new PortController())).Count > 0))
                 {
-                    foreach (var cable in cables)
-                    {
-                        if (requiredConnection.Contains(cable.Value[0].connection) && requiredConnection.Contains(cable.Value[1].connection))
-                        {
-
-                            StartCall(requiredConnection[0], requiredConnection[1]);
-                            requiredConnection = new PortController[] { };
-                        }
-                    }
+                    RegisterConnection(new Connection(cable[0].connection, cable[1].connection), ConnectionType.Unnecessary);
+                    return;
                 }
-
+                foreach (Connection connection in requiredConnections.FindAll((c) => c.includesPort(cable[0].connection) || c.includesPort(cable[1].connection)))
+                {
+                    if (connection.includesPort(cable[0].connection) && connection.includesPort(cable[0].connection))
+                    {
+                        RegisterConnection(connection, ConnectionType.Correct);
+                        return;
+                    }
+                    RegisterConnection(connection, ConnectionType.Wrong);
+                }
             };
         }
     }
@@ -69,7 +74,7 @@ public class PortsController : MonoBehaviour
 
     public void RequireConnection(PortController first, PortController second)
     {
-        requiredConnection = new PortController[] { first, second };
+        requiredConnections.Add(new Connection(first, second));
     }
 
     public void RequireConnection(string firstId, string secondId)
@@ -107,12 +112,97 @@ public class PortsController : MonoBehaviour
 
         StartCoroutine(endCall(call, new System.Random().Next(10, 15)));
     }
+
+    public void StartCall(Connection connection)
+    {
+        Call call = new Call()
+        {
+            caller = connection.caller,
+            callee = connection.callee,
+            callerName = "",
+            calleeName = ""
+        };
+        currentCalls.Add(call);
+        connection.callee.BlinkLight();
+
+        IEnumerator endCall(Call call, float delaySeconds)
+        {
+            yield return new WaitForSeconds(delaySeconds);
+            currentCalls.Remove(call);
+            call.caller.ToggleLight(false);
+            call.callee.ToggleLight(false);
+        }
+
+        StartCoroutine(endCall(call, new System.Random().Next(10, 15)));
+    }
+
+    public void RegisterConnection(Connection connection, ConnectionType type)
+    {
+        registeredConnections.Add(new RegisteredConnection(connection, type));
+        if (type == ConnectionType.Correct)
+        {
+            StartCall(connection.caller, connection.callee);
+            requiredConnections.Remove(connection);
+        }
+        scoreHandler.GetGrade();
+    }
 }
 
-public class Call
+public interface ICall
 {
     public PortController caller { get; set; }
     public string callerName { get; set; }
     public PortController callee { get; set; }
     public string calleeName { get; set; }
+}
+
+public class Call : ICall
+{
+    public PortController caller { get; set; }
+    public string callerName { get; set; }
+    public PortController callee { get; set; }
+    public string calleeName { get; set; }
+}
+
+public class Connection : ICall
+{
+    public PortController caller { get; set; }
+    public string callerName { get; set; }
+    public PortController callee { get; set; }
+    public string calleeName { get; set; }
+    public DateTime startTime { get; private set; }
+
+    public Connection(PortController caller, PortController callee)
+    {
+        this.caller = caller;
+        this.callee = callee;
+        this.calleeName = ""; this.callerName = "";
+        this.startTime = DateTime.Now;
+    }
+
+    public bool includesPort(PortController port)
+    {
+        return caller == port || callee == port;
+    }
+}
+
+public class RegisteredConnection
+{
+    public Connection connection { get; set; }
+    public ConnectionType type { get; set; }
+    public TimeSpan timeElapsed { get; private set; }
+
+    public RegisteredConnection(Connection connection, ConnectionType type)
+    {
+        this.connection = connection;
+        this.type = type;
+        timeElapsed = DateTime.Now.Subtract(connection.startTime);
+    }
+}
+
+public enum ConnectionType
+{
+    Correct,
+    Wrong,
+    Unnecessary
 }
