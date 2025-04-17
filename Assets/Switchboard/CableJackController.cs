@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Xml;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -22,7 +23,7 @@ public class CableJackController : MonoBehaviour
     public CableEnd cableEnd = CableEnd.start;
     public Sprite unoccupiedSprite;
     public Sprite occupiedSprite;
-
+    public Transform centerBoneTransform;
     Vector3 beforePosition = Vector3.zero;
     Vector3 deltaPos = Vector3.zero;
 
@@ -39,12 +40,13 @@ public class CableJackController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        setAngle(this.transform.position);
         if (Input.GetMouseButtonDown(0)) { Debug.Log("M1"); }
         if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown)
         {
             mouseDown = true;
             beforePosition = this.transform.position;
-            deltaPos = this.transform.position - boneAnchor.transform.position;
+            deltaPos = Camera.main.ScreenToWorldPoint(Input.mousePosition) - this.transform.position;
             SetOccupied(false);
         }
         if (Input.GetMouseButtonUp(0) && mouseDown)
@@ -58,13 +60,17 @@ public class CableJackController : MonoBehaviour
                     SetOccupied(false);
                 }
                 connection = portHover.gameObject.GetComponentInParent<PortController>();
-                Vector2 pos = (Vector2)portHover.transform.position + (Vector2)portHover.offset / 2;
+                Vector2 pos = (Vector2)portHover.gameObject.transform.position + ((Vector2)portHover.offset / 2);
+                
+                
                 if (connection.IsCableHolder)
                 {
                     pos.y += .6f;
                 }
                 boneAnchor.transform.position = pos;
                 rb.MovePosition(pos);
+                
+                //setAngle(pos);
                 PortID = connection.IsCableHolder ? "cableholder" : connection.PortName;
                 connection.cableConnected = this;
                 connection.Occupied = true;
@@ -74,6 +80,7 @@ public class CableJackController : MonoBehaviour
             }
             boneAnchor.transform.position = beforePosition;
             rb.MovePosition(beforePosition);
+            //setAngle(beforePosition);
             if (connection != null)
             {
                 SetOccupied(true);
@@ -83,9 +90,10 @@ public class CableJackController : MonoBehaviour
         }
         if (mouseDown)
         {
-            Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition) - deltaPos;
             boneAnchor.transform.position = pos;
             rb.MovePosition(pos);
+            //setAngle(pos);
         }
     }
 
@@ -110,7 +118,7 @@ public class CableJackController : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject == portHover!)
+        if (collision.gameObject.gameObject.GetComponent<CircleCollider2D>()! == portHover!)
         {
             portHover = null;
         }
@@ -119,5 +127,18 @@ public class CableJackController : MonoBehaviour
     void SetOccupied(bool value)
     {
         this.gameObject.GetComponent<SpriteRenderer>().sprite = value ? occupiedSprite : unoccupiedSprite;
+    }
+
+    void setAngle(Vector2 pos)
+    {
+        Vector2 _delta = new Vector2(pos.x - centerBoneTransform.position.x, pos.y - centerBoneTransform.position.y);
+        float ang = (Mathf.Atan(_delta.y / _delta.x));
+        if (_delta.x < 0f)
+            ang += Mathf.PI;
+        if (_delta.y < 0f)
+            ang += 2 * Mathf.PI;
+        ang += (cableEnd == CableEnd.start ? Mathf.PI : 0);
+        boneAnchor.transform.rotation = Quaternion.Euler(0, 0, ang * (180 / Mathf.PI));
+        this.transform.rotation = Quaternion.Euler(0, 0, ang * (180 / Mathf.PI));
     }
 }

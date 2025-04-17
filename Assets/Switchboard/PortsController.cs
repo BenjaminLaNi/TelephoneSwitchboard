@@ -46,6 +46,9 @@ public class PortsController : MonoBehaviour
                     incomingCalls.Remove(port);
                     return;
                 }
+                if (port.IsOperatorCable) {
+                    return;
+                }
                 var cable = cables.Values.ToList().FindLast((c) => c.Contains(port.cableConnected));
                 if (cable[0].connection == null || cable[1].connection == null || cable[0].connection.IsOperatorCable || cable[1].connection.IsOperatorCable) { return; }
                 if (!(requiredConnections.FindAll((c) => c.includesPort(cable[0].connection)).Count > 0 || requiredConnections.FindAll((c) => c.includesPort(cable[1].connection)).Count > 0))

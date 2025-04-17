@@ -11,6 +11,7 @@ public class OperatorJackHandler : MonoBehaviour
     public CableEnd cableEnd = CableEnd.end;
     public Sprite unoccupiedSprite;
     public Sprite occupiedSprite;
+    public Transform centerBoneTransform;
 
     Vector3 regularPosition = Vector3.zero;
     Vector3 deltaPos = Vector3.zero;
@@ -29,6 +30,7 @@ public class OperatorJackHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        setAngle(this.transform.position);
         if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown)
         {
             mouseDown = true;
@@ -100,7 +102,7 @@ public class OperatorJackHandler : MonoBehaviour
 
     void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject == portHover!)
+        if (collision.gameObject.gameObject.GetComponent<CircleCollider2D>()! == portHover!)
         {
             portHover = null;
         }
@@ -109,5 +111,18 @@ public class OperatorJackHandler : MonoBehaviour
     void SetOccupied(bool value)
     {
         this.gameObject.GetComponent<SpriteRenderer>().sprite = value ? occupiedSprite : unoccupiedSprite;
+    }
+
+    void setAngle(Vector2 pos)
+    {
+        Vector2 _delta = new Vector2(pos.x - centerBoneTransform.position.x, pos.y - centerBoneTransform.position.y);
+        float ang = (Mathf.Atan(_delta.y / _delta.x));
+        if (_delta.x < 0f)
+            ang += Mathf.PI;
+        if (_delta.y < 0f)
+            ang += 2 * Mathf.PI;
+        ang += (cableEnd == CableEnd.start ? Mathf.PI : 0);
+        boneAnchor.transform.rotation = Quaternion.Euler(0, 0, ang * (180 / Mathf.PI));
+        this.transform.rotation = Quaternion.Euler(0, 0, ang * (180 / Mathf.PI));
     }
 }
