@@ -15,9 +15,12 @@ public class PortsController : MonoBehaviour
     public List<RegisteredConnection> registeredConnections = new List<RegisteredConnection>();
     public ScoreHandler scoreHandler;
 
-    List<PortController> ports;
+    public List<PortController> ports;
+    public List<PortController> cableHolderPorts = new List<PortController>();
     public Dictionary<string, List<CableJackController>> cables;
+    public List<CableToCableHolder> cablesToCableHolder = new List<CableToCableHolder>();
     public GameObject cablesParent;
+    public GameObject cableHolderParent;
     public List<Connection> requiredConnections = new List<Connection>();
     public string requiredOperatorId = "";
     public Action requiredOperatorCallback = new Action(() => { });
@@ -25,6 +28,7 @@ public class PortsController : MonoBehaviour
     void Awake()
     {
         ports = new List<PortController>(this.GetComponentsInChildren<PortController>());
+        cableHolderPorts = new List<PortController>(cableHolderParent.GetComponentsInChildren<PortController>());
         cables = new Dictionary<string, List<CableJackController>>();
         foreach (CableJackController c in cablesParent.GetComponentsInChildren<CableJackController>())
         {
@@ -39,14 +43,15 @@ public class PortsController : MonoBehaviour
         {
             port.OccupiedCallback = (isOccupied) =>
             {
-                if (!isOccupied) { return; }
+                if (!isOccupied) { port.IsOperatorCable = false; return; }
                 if (incomingCalls.ContainsKey(port) && isOccupied && port.IsOperatorCable)
                 {
                     incomingCalls[port]();
                     incomingCalls.Remove(port);
                     return;
                 }
-                if (port.IsOperatorCable) {
+                if (port.IsOperatorCable)
+                {
                     return;
                 }
                 var cable = cables.Values.ToList().FindLast((c) => c.Contains(port.cableConnected));
@@ -58,12 +63,33 @@ public class PortsController : MonoBehaviour
                 }
                 foreach (Connection connection in requiredConnections.FindAll((c) => c.includesPort(cable[0].connection) || c.includesPort(cable[1].connection)))
                 {
-                    if (connection.includesPort(cable[0].connection) && connection.includesPort(cable[0].connection))
+                    if (connection.includesPort(cable[0].connection) && connection.includesPort(cable[1].connection))
                     {
                         RegisterConnection(connection, ConnectionType.Correct);
                         return;
                     }
+                    if ((connection.includesPort(cable[0].connection) && cable[1].connection.IsCableHolder) || (connection.includesPort(cable[1].connection) && cable[0].connection.IsCableHolder))
+                    {
+                        return;
+                    }
                     RegisterConnection(connection, ConnectionType.Wrong);
+                }
+            };
+        }
+
+        foreach (PortController port in cableHolderPorts)
+        {
+            port.OccupiedCallback = (isOccupied) =>
+            {
+                if (!isOccupied) { port.IsOperatorCable = false; return; }
+                var cable = cables.Values.ToList().FindLast((c) => c.Contains(port.cableConnected));
+                Debug.Log(string.Join(", ", cable.Select((c) => c.cableEnd).ToArray()));
+                var cableToCableHolder = cablesToCableHolder.FindLast((c) => c.cables.FindAll((c) => cable.Contains(c)).Count > 0);
+                Debug.Log(string.Join(", ", cableToCableHolder.cables.Select((c) => c.cableEnd).ToArray()));
+                if (cableToCableHolder is not null && cableToCableHolder.cables[0].PortID == "cableholder" && cableToCableHolder.cables[1].PortID == "cableholder")
+                {
+                    cableToCableHolder.callback();
+                    cablesToCableHolder.Remove(cableToCableHolder);
                 }
             };
         }
@@ -75,9 +101,39 @@ public class PortsController : MonoBehaviour
 
     }
 
+    public void RequireCableHolder(List<CableJackController> cables, Action callback)
+    {
+        cablesToCableHolder.Add(new CableToCableHolder(cables, callback));
+    }
+
+    public void RequireConnection(Connection connection)
+    {
+        requiredConnections.Add(connection);
+    }
+
     public void RequireConnection(PortController first, PortController second)
     {
         requiredConnections.Add(new Connection(first, second));
+    }
+
+    public void RequireConnection(PortController first, PortController second, Action callback)
+    {
+        requiredConnections.Add(new Connection(first, second) { callback = callback });
+    }
+
+    public void RequireConnection(PortController first, PortController second, Action callback, Action callFinishedCallback)
+    {
+        requiredConnections.Add(new Connection(first, second) { callback = callback, callFinishedCallback = callFinishedCallback });
+    }
+
+    public void RequireConnection(string firstId, string secondId, Action callback)
+    {
+        RequireConnection(ports.Find(p => p.PortName == firstId), ports.Find(p => p.PortName == secondId), callback);
+    }
+
+    public void RequireConnection(string firstId, string secondId, Action callback, Action callFinishedCallback)
+    {
+        RequireConnection(ports.Find(p => p.PortName == firstId), ports.Find(p => p.PortName == secondId), callback, callFinishedCallback);
     }
 
     public void RequireConnection(string firstId, string secondId)
@@ -123,7 +179,8 @@ public class PortsController : MonoBehaviour
             caller = connection.caller,
             callee = connection.callee,
             callerName = "",
-            calleeName = ""
+            calleeName = "",
+            callback = connection.callFinishedCallback
         };
         currentCalls.Add(call);
         connection.callee.BlinkLight();
@@ -134,6 +191,10 @@ public class PortsController : MonoBehaviour
             currentCalls.Remove(call);
             call.caller.ToggleLight(false);
             call.callee.ToggleLight(false);
+            if (call.callback is not null)
+            {
+                call.callback();
+            }
         }
 
         StartCoroutine(endCall(call, new System.Random().Next(10, 15)));
@@ -144,7 +205,7 @@ public class PortsController : MonoBehaviour
         registeredConnections.Add(new RegisteredConnection(connection, type));
         if (type == ConnectionType.Correct)
         {
-            StartCall(connection.caller, connection.callee);
+            StartCall(connection);
             requiredConnections.Remove(connection);
         }
         scoreHandler.GetGrade();
@@ -165,8 +226,8 @@ public class Call : ICall
     public string callerName { get; set; }
     public PortController callee { get; set; }
     public string calleeName { get; set; }
+    public Action callback { get; set; }
 }
-
 public class Connection : ICall
 {
     public PortController caller { get; set; }
@@ -174,6 +235,8 @@ public class Connection : ICall
     public PortController callee { get; set; }
     public string calleeName { get; set; }
     public DateTime startTime { get; private set; }
+    public Action callback { get; set; }
+    public Action callFinishedCallback { get; set; }
 
     public Connection(PortController caller, PortController callee)
     {
@@ -197,9 +260,25 @@ public class RegisteredConnection
 
     public RegisteredConnection(Connection connection, ConnectionType type)
     {
+        if (type == ConnectionType.Correct && connection.callback is not null)
+        {
+            connection.callback();
+        }
         this.connection = connection;
         this.type = type;
         timeElapsed = DateTime.Now.Subtract(connection.startTime);
+    }
+}
+
+public class CableToCableHolder
+{
+    public List<CableJackController> cables { get; set; }
+    public Action callback { get; set; }
+
+    public CableToCableHolder(List<CableJackController> cables, Action callback)
+    {
+        this.cables = cables;
+        this.callback = callback;
     }
 }
 

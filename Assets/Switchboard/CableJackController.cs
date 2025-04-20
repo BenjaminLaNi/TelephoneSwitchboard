@@ -28,6 +28,7 @@ public class CableJackController : MonoBehaviour
     Vector3 deltaPos = Vector3.zero;
 
     public GameObject boneAnchor;
+    public GameObject uiBackground;
     public string PortID = "";
 
     Rigidbody2D rb;
@@ -35,6 +36,7 @@ public class CableJackController : MonoBehaviour
     void Start()
     {
         rb = this.GetComponent<Rigidbody2D>();
+
     }
 
     // Update is called once per frame
@@ -42,7 +44,7 @@ public class CableJackController : MonoBehaviour
     {
         setAngle(this.transform.position);
         if (Input.GetMouseButtonDown(0)) { Debug.Log("M1"); }
-        if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown)
+        if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown && !uiBackground.activeInHierarchy)
         {
             mouseDown = true;
             beforePosition = this.transform.position;
@@ -61,15 +63,15 @@ public class CableJackController : MonoBehaviour
                 }
                 connection = portHover.gameObject.GetComponentInParent<PortController>();
                 Vector2 pos = (Vector2)portHover.gameObject.transform.position + ((Vector2)portHover.offset / 2);
-                
-                
+
+
                 if (connection.IsCableHolder)
                 {
                     pos.y += .6f;
                 }
                 boneAnchor.transform.position = pos;
                 rb.MovePosition(pos);
-                
+
                 //setAngle(pos);
                 PortID = connection.IsCableHolder ? "cableholder" : connection.PortName;
                 connection.cableConnected = this;

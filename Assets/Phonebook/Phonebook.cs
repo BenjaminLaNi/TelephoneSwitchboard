@@ -133,6 +133,13 @@ public class Phonebook
         }
     }
 
+    public Phonebook(TMP_Text leftText, TMP_Text rightText)
+    {
+        this.leftText = leftText;
+        this.rightText = rightText;
+        _pages = new List<Page>();
+    }
+
     public void AddContact(PhoneContact contact)
     {
         _contacts.AddContact(contact);
@@ -149,6 +156,14 @@ public class Phonebook
         else
         {
             AddPage(new PhoneContact[] { contact });
+        }
+    }
+
+    public void AddContacts(PhoneContact[] contacts)
+    {
+        foreach (PhoneContact contact in contacts)
+        {
+            AddContact(contact);
         }
     }
 
@@ -238,7 +253,7 @@ public class PhoneContact
 
     public string BookEntry()
     {
-        return $"{portId} - {name}" + ((note != "") ? $" <i>({note})</i>" : "");
+        return $"{portId} - {name}" + (!String.IsNullOrEmpty(note) ? $" <i>({note})</i>" : "");
     }
 
     public PhoneContact(string portId, string name, string note)

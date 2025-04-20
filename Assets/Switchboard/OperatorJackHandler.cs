@@ -17,6 +17,7 @@ public class OperatorJackHandler : MonoBehaviour
     Vector3 deltaPos = Vector3.zero;
 
     public GameObject boneAnchor;
+    public GameObject uiBackground;
     public string PortID = "";
 
     Rigidbody2D rb;
@@ -31,7 +32,7 @@ public class OperatorJackHandler : MonoBehaviour
     void Update()
     {
         setAngle(this.transform.position);
-        if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown)
+        if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown && !uiBackground.activeInHierarchy)
         {
             mouseDown = true;
             SetOccupied(false);

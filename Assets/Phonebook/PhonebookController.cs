@@ -6,8 +6,8 @@ using UnityEngine;
 
 public class PhonebookController : MonoBehaviour
 {
-    public GameObject phonebookObject = null;
-    public GameObject toggleObject = null;
+    GameObject phonebookObject = null;
+    GameObject toggleObject = null;
 
     TMP_Text leftText = null;
     TMP_Text rightText = null;
@@ -18,6 +18,7 @@ public class PhonebookController : MonoBehaviour
     Animator toggleAnimator = null;
     public Phonebook phonebook = null;
     public int currentPage = 1;
+    public Action<bool> toggleCallback = null;
     public bool showBook
     {
         get
@@ -29,6 +30,7 @@ public class PhonebookController : MonoBehaviour
             ShowPages();
             phonebookAnimator.SetBool("IsShown", value);
             toggleAnimator.SetBool("IsShown", value);
+            toggleCallback?.Invoke(value);
         }
     }
     // Start is called before the first frame update
@@ -41,7 +43,7 @@ public class PhonebookController : MonoBehaviour
         prevButton = phonebookObject.GetComponentsInChildren<UnityEngine.UI.Button>().First((b) => b.gameObject.name == "Previous Page Button");
         nextButton = phonebookObject.GetComponentsInChildren<UnityEngine.UI.Button>().First((b) => b.gameObject.name == "Next Page Button");
         closeButton = phonebookObject.GetComponentsInChildren<UnityEngine.UI.Button>().First((b) => b.gameObject.name == "Close Button");
-        phonebook = new Phonebook(mockData.contacts, leftText, rightText);
+        phonebook = new Phonebook(leftText, rightText);
         phonebookAnimator = phonebookObject.GetComponent<Animator>();
         toggleAnimator = toggleObject.GetComponent<Animator>();
 
@@ -59,15 +61,29 @@ public class PhonebookController : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.C))
         {
             ToggleBook();
+            return;
+        }
+        if (showBook && Input.GetKeyUp(KeyCode.Escape))
+        {
+            ToggleBook();
+            return;
         }
     }
 
     public void ShowPages()
     {
-        leftText.text = phonebook.pages[currentPage - 1].PageEntry();
-        rightText.text = phonebook.pages.Length > currentPage + 1 ? phonebook.pages[currentPage].PageEntry() : "";
-        prevButton.interactable = currentPage >= 3;
-        nextButton.interactable = currentPage <= phonebook.pages.Length - 2;
+        if (phonebook.pages.Length == 0)
+        {
+            leftText.text = "No Contacts";
+            rightText.text = "";
+        }
+        else
+        {
+            leftText.text = phonebook.pages[currentPage - 1].PageEntry();
+            rightText.text = phonebook.pages.Length > currentPage + 1 ? phonebook.pages[currentPage].PageEntry() : "";
+            prevButton.interactable = currentPage >= 3;
+            nextButton.interactable = currentPage <= phonebook.pages.Length - 2;
+        }
     }
 
     public void ToggleBook()

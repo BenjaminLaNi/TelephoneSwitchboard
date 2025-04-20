@@ -9,6 +9,7 @@ public class DialogueHandler : MonoBehaviour
 {
     private TMP_Text speakerObject = null;
     private TMP_Text messageObject = null;
+    private GameObject backgroundObject = null;
 
     public bool showingDialogue
     {
@@ -19,6 +20,7 @@ public class DialogueHandler : MonoBehaviour
         private set
         {
             gameObject.SetActive(value);
+            backgroundObject.SetActive(value);
         }
     }
     private List<Dialogue> _dialogueQueue = new List<Dialogue>();
@@ -33,6 +35,7 @@ public class DialogueHandler : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        backgroundObject = transform.parent.Find("UI Background").gameObject;
         showingDialogue = true;
         foreach (TMP_Text o in GetComponentsInChildren<TMP_Text>())
         {
@@ -54,12 +57,15 @@ public class DialogueHandler : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Space) && showingDialogue)
         {
-            if (_dialogueQueue.Count > 0)
+            if (_dialogueQueue.Count > 1)
             {
-                DisplayDialogue(_dialogueQueue[0]);
-                _dialogueQueue.Remove(_dialogueQueue[0]);
+                DisplayDialogue(_dialogueQueue[1]);
+                _dialogueQueue[0].callback();
+                _dialogueQueue.RemoveAt(0);
                 return;
             }
+            _dialogueQueue[0].callback();
+            _dialogueQueue.RemoveAt(0);
             ToggleDialoguePanel(false);
             return;
         }
@@ -70,7 +76,6 @@ public class DialogueHandler : MonoBehaviour
         if (dialogueQueue.Length <= 0)
         {
             DisplayDialogue(dialogue);
-            return;
         }
         _dialogueQueue.Add(dialogue);
     }
@@ -81,7 +86,7 @@ public class DialogueHandler : MonoBehaviour
         {
             DisplayDialogue(dialogues[0]);
         }
-        _dialogueQueue.AddRange(dialogues.Except(new Dialogue[] { dialogues[0] }));
+        _dialogueQueue.AddRange(dialogues);
     }
 
     private void DisplayDialogue(Dialogue dialogue)
@@ -92,7 +97,6 @@ public class DialogueHandler : MonoBehaviour
             speakerObject.text = dialogue.speaker;
             messageObject.text = dialogue.message;
         }
-        dialogue.callback();
     }
 
     private void ToggleDialoguePanel()
