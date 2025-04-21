@@ -21,10 +21,11 @@ public class ScoreHandler : MonoBehaviour
 
     }
 
-    public void GetGrade()
+    public Score GetScore()
     {
         Score score = new Score(portsController.registeredConnections.ToArray());
         Debug.Log(score.numScore + ": " + score.grade);
+        return score;
     }
 }
 

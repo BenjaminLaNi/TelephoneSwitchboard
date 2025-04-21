@@ -66,11 +66,6 @@ public class PhonebookController : MonoBehaviour
             ToggleBook();
             return;
         }
-        if (showBook && Input.GetKeyUp(KeyCode.Escape))
-        {
-            ToggleBook();
-            return;
-        }
     }
 
     public void ShowPages()

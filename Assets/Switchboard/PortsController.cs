@@ -205,7 +205,7 @@ public class PortsController : MonoBehaviour
             StartCall(connection);
             requiredConnections.Remove(connection);
         }
-        scoreHandler.GetGrade();
+        scoreHandler.GetScore();
     }
 }
 

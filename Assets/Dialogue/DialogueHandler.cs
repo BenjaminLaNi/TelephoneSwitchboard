@@ -10,6 +10,7 @@ public class DialogueHandler : MonoBehaviour
     private TMP_Text speakerObject = null;
     private TMP_Text messageObject = null;
     private GameObject backgroundObject = null;
+    public PauseMenuHandler pauseMenuHandler;
 
     public bool showingDialogue
     {
@@ -20,7 +21,7 @@ public class DialogueHandler : MonoBehaviour
         private set
         {
             gameObject.SetActive(value);
-            backgroundObject.SetActive(value);
+            backgroundObject.SetActive(value || pauseMenuHandler.isPaused);
         }
     }
     private List<Dialogue> _dialogueQueue = new List<Dialogue>();
@@ -55,7 +56,7 @@ public class DialogueHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Space) && showingDialogue)
+        if (!pauseMenuHandler.isPaused && Input.GetKeyUp(KeyCode.Space) && showingDialogue)
         {
             if (_dialogueQueue.Count > 1)
             {

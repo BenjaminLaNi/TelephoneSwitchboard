@@ -11,6 +11,8 @@ public class StoryHandler : MonoBehaviour
     public PhonebookController phonebookController;
     public ObjectivesHandler objectivesHandler;
     public ClockHandler clockHandler;
+    public PauseMenuHandler pauseMenuHandler;
+    public ScoreHandler scoreHandler;
 
     // Start is called before the first frame update
     void Start()
@@ -124,7 +126,9 @@ public class StoryHandler : MonoBehaviour
                                                                             dialogueHandler.AddDialogues(new Dialogue[] {
                                                                                 new Dialogue("Big Boss", "Good job! That's all for today. Go home and rest. I'll be watching you and evaluating your lack of performance."),
                                                                                 new Dialogue("You", "Thanks?"),
-                                                                                new Dialogue("Big Boss", "Yes, you're welcome. I'll see you tomorrow."),
+                                                                                new Dialogue("Big Boss", "Yes, you're welcome. I'll see you tomorrow.", () => {
+                                                                                    pauseMenuHandler.DayEnded("One", scoreHandler.GetScore().numScore, scoreHandler.GetScore().grade);
+                                                                                }),
                                                                             });
                                                                         });
                                                                     });

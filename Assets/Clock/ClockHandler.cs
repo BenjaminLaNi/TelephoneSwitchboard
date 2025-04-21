@@ -10,6 +10,8 @@ public class ClockHandler : MonoBehaviour
     GameObject[] minuteHands;
     GameObject[] hourHands;
     public bool isRunning = false;
+    public int currentHour { get; private set; } = -1;
+    public int currentMinute { get; private set; } = -1;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,8 +29,8 @@ public class ClockHandler : MonoBehaviour
     {
         yield return new WaitForSeconds(delaySeconds);
         isRunning = true;
-        int currentHour = startHour;
-        int currentMinute = startMinute;
+        currentHour = startHour;
+        currentMinute = startMinute;
         while (isRunning)
         {
             if (currentMinute == 11)
