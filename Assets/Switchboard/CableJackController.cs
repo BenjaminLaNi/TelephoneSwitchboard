@@ -43,7 +43,7 @@ public class CableJackController : MonoBehaviour
     void Update()
     {
         setAngle(this.transform.position);
-        if (Input.GetMouseButtonDown(0)) { Debug.Log("M1"); }
+        // if (Input.GetMouseButtonDown(0)) { Debug.Log("M1"); }
         if (Input.GetMouseButtonDown(0) && mouseOver && !mouseDown && !uiBackground.activeInHierarchy)
         {
             mouseDown = true;
@@ -62,12 +62,12 @@ public class CableJackController : MonoBehaviour
                     SetOccupied(false);
                 }
                 connection = portHover.gameObject.GetComponentInParent<PortController>();
-                Vector2 pos = (Vector2)portHover.gameObject.transform.position + ((Vector2)portHover.offset / 2);
+                Vector2 pos = (Vector2)portHover.transform.position;
 
 
                 if (connection.IsCableHolder)
                 {
-                    pos.y += .6f;
+                    //pos.y += .6f;
                 }
                 boneAnchor.transform.position = pos;
                 rb.MovePosition(pos);
@@ -114,7 +114,7 @@ public class CableJackController : MonoBehaviour
         if (collision.gameObject.tag == "PortCollider" && mouseDown)
         {
             portHover = collision.gameObject.GetComponent<CircleCollider2D>();
-            Debug.Log("Port");
+            // Debug.Log("Port");
         }
     }
 

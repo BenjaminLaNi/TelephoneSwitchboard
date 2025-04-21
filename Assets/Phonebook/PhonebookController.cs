@@ -8,6 +8,8 @@ public class PhonebookController : MonoBehaviour
 {
     GameObject phonebookObject = null;
     GameObject toggleObject = null;
+    private GameObject backgroundObject = null;
+
 
     TMP_Text leftText = null;
     TMP_Text rightText = null;
@@ -38,6 +40,7 @@ public class PhonebookController : MonoBehaviour
     {
         phonebookObject = GetComponentsInChildren<RectTransform>().First((g) => g.gameObject.name == "Phonebook").gameObject;
         toggleObject = GetComponentsInChildren<RectTransform>().First((g) => g.gameObject.name == "Phonebook Toggle").gameObject;
+        backgroundObject = transform.parent.Find("UI Background").gameObject;
         leftText = phonebookObject.GetComponentsInChildren<TMP_Text>().First((t) => t.gameObject.name == "Left Page Text");
         rightText = phonebookObject.GetComponentsInChildren<TMP_Text>().First((t) => t.gameObject.name == "Right Page Text");
         prevButton = phonebookObject.GetComponentsInChildren<UnityEngine.UI.Button>().First((b) => b.gameObject.name == "Previous Page Button");
@@ -58,7 +61,7 @@ public class PhonebookController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyUp(KeyCode.C))
+        if (Input.GetKeyUp(KeyCode.C) && !backgroundObject.activeInHierarchy)
         {
             ToggleBook();
             return;
@@ -81,9 +84,9 @@ public class PhonebookController : MonoBehaviour
         {
             leftText.text = phonebook.pages[currentPage - 1].PageEntry();
             rightText.text = phonebook.pages.Length > currentPage + 1 ? phonebook.pages[currentPage].PageEntry() : "";
-            prevButton.interactable = currentPage >= 3;
-            nextButton.interactable = currentPage <= phonebook.pages.Length - 2;
         }
+        prevButton.interactable = currentPage >= 3;
+        nextButton.interactable = currentPage <= phonebook.pages.Length - 2;
     }
 
     public void ToggleBook()

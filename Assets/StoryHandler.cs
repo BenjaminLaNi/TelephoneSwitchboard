@@ -10,10 +10,12 @@ public class StoryHandler : MonoBehaviour
     public PortsController portsController;
     public PhonebookController phonebookController;
     public ObjectivesHandler objectivesHandler;
+    public ClockHandler clockHandler;
 
     // Start is called before the first frame update
     void Start()
     {
+        clockHandler.SetStartTime(3, 12);
         phonebookController.toggleCallback = (show) =>
         {
             if (show)

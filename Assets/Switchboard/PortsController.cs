@@ -81,11 +81,9 @@ public class PortsController : MonoBehaviour
         {
             port.OccupiedCallback = (isOccupied) =>
             {
-                if (!isOccupied) { port.IsOperatorCable = false; return; }
+                if (!isOccupied || cablesToCableHolder.Count == 0) { port.IsOperatorCable = false; return; }
                 var cable = cables.Values.ToList().FindLast((c) => c.Contains(port.cableConnected));
-                Debug.Log(string.Join(", ", cable.Select((c) => c.cableEnd).ToArray()));
                 var cableToCableHolder = cablesToCableHolder.FindLast((c) => c.cables.FindAll((c) => cable.Contains(c)).Count > 0);
-                Debug.Log(string.Join(", ", cableToCableHolder.cables.Select((c) => c.cableEnd).ToArray()));
                 if (cableToCableHolder is not null && cableToCableHolder.cables[0].PortID == "cableholder" && cableToCableHolder.cables[1].PortID == "cableholder")
                 {
                     cableToCableHolder.callback();
@@ -146,7 +144,6 @@ public class PortsController : MonoBehaviour
         PortController _p = ports.Where((p) => p.PortName == id).FirstOrDefault();
         incomingCalls.Add(_p, callback);
         _p.ToggleLight(true);
-        //_p.BlinkLight();
     }
 
     public void StartCall(PortController caller, PortController callee)
