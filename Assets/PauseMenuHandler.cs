@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -61,9 +62,10 @@ public class PauseMenuHandler : MonoBehaviour
     {
         pauseMenuObject = transform.Find("PausePanel").gameObject;
         pauseButtonObject = transform.Find("PauseButton").GetComponent<Button>();
-        continueButtonObject = pauseMenuObject.transform.Find("Continue Button").GetComponent<Button>();
-        nextDayButtonObject = pauseMenuObject.transform.Find("Next Day Button").GetComponent<Button>();
-        mainMenuButtonObject = pauseMenuObject.transform.Find("Main Menu Button").GetComponent<Button>();
+        Button[] buttons = pauseMenuObject.GetComponentsInChildren<Button>();
+        continueButtonObject = buttons.Where(b => b.gameObject.name == "Continue Button").First();
+        nextDayButtonObject = buttons.Where(b => b.gameObject.name == "Next Day Button").First();
+        mainMenuButtonObject = buttons.Where(b => b.gameObject.name == "Main Menu Button").First();
         pointsPanelObject = pauseMenuObject.transform.Find("PointsPanel").gameObject;
         pointsText = pointsPanelObject.transform.Find("Points").GetComponent<TMP_Text>();
         dayText = pointsPanelObject.transform.Find("Day").GetComponent<TMP_Text>();
